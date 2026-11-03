@@ -43,3 +43,18 @@ mkdir -p com_dbg com_opt test_dbg sla_opt sla_dbg
 touch xml.cc grammar.cc pcodeparse.cc slghparse.cc slghparse.hh slghscan.cc
 make -j"$(nproc)" CXX="$CXX_FLAGS" LNK="$LNK_FLAGS" decomp_test_dbg decomp_dbg sleigh_opt
 ./sleigh_opt -a ../../../../../Processors
+
+# Driving the two binaries (both need SLEIGHHOME="$GHIDRA" and -usesleighenv):
+#
+#   decomp_test_dbg -usesleighenv -path DIR datatests FILE.xml
+#
+# is the supported path for tracing: it loads through the XML `<binaryimage>`, so it
+# needs no BFD, and it honours the two hooks the Rust harness also honours -
+# GHIDRA_ACTION_TRACE=1 (one `A`/`R` event per line on stderr) and
+# GHIDRA_TEST_OUTPUT=FILE (the script's printed output, `===`-separated).
+#
+# `decomp_dbg`'s console loads through BFD, and `load file` takes a **BFD target name**
+# first and the file second (`load file elf32-little IMAGE`) - a Ghidra language string
+# there fails as `invalid bfd target`. Single-target BFD builds (Fedora's) only carry the
+# generic names, so `elf32-littlearm` is invalid while `elf32-little` works, and the
+# language is then guessed from the object rather than from the target.
