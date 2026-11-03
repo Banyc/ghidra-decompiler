@@ -7,7 +7,7 @@ rust-version = "1.88"
 license = "Apache-2.0"
 exclude = ["/tests", "/tools", "/fuzz", "/reference", "/ci", "/.github", "/rust-toolchain.toml"]
 authors = ["Jan Bujak <j@exia.io>"]
-repository = "https://github.com/koute/ghidra-decompiler"
+repository = "https://github.com/Banyc/ghidra-decompiler"
 
 [dependencies]
 cpp_demangle = { version = "0.5.1", optional = true }

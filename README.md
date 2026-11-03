@@ -6,6 +6,9 @@ A pure Rust port of the Ghidra decompiler (Ghidra 12.2, `Ghidra/Features/Decompi
 It has no C, C++ or Java dependencies. The output is textually identical to the C++ decompiler on the
 test corpora in `tests/data`.
 
+This fork is maintained at <https://github.com/Banyc/ghidra-decompiler>; the port it descends from is
+<https://github.com/koute/ghidra-decompiler>.
+
 ## Library usage
 
 ```rust
