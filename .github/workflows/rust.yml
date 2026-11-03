@@ -109,7 +109,7 @@ jobs:
       uses: actions/cache@v4
       with:
         path: reference/ghidra
-        key: reference-${{ hashFiles('tools/build_reference.sh', 'tools/trace/action_trace.patch', 'tools/fuzz/reference_fixes.patch') }}
+        key: reference-${{ hashFiles('tools/build_reference.sh', 'tools/trace/action_trace.patch', 'tools/fuzz/reference_fixes.patch', 'tools/reference/*.patch') }}
     - name: Fuzz
       run: ./ci/jobs/fuzz.sh ${{ matrix.target }}
     - name: Upload crash inputs
