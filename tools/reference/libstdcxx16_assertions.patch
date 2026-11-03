@@ -1,0 +1,56 @@
+diff --git a/filemanage.cc b/filemanage.cc
+index 9e03ab2d..918919df 100644
+--- a/filemanage.cc
++++ b/filemanage.cc
+@@ -149,7 +149,7 @@ void FileManage::matchListDir(vector<string> &res,const string &match,bool isSuf
+   string dirfinal;
+ 
+   dirfinal = dirname;
+-  if (!isSeparator(dirfinal[dirfinal.size()-1]))
++  if (!dirfinal.empty() && !isSeparator(dirfinal[dirfinal.size()-1]))
+     dirfinal += separator;
+   string regex = dirfinal + '*';
+ 
+@@ -180,7 +180,7 @@ void FileManage::matchListDir(vector<string> &res,const string &match,bool isSuf
+   DIR *dir;
+   struct dirent *entry;
+   string dirfinal = dirname;
+-  if (!isSeparator(dirfinal[dirfinal.size()-1]))
++  if (!dirfinal.empty() && !isSeparator(dirfinal[dirfinal.size()-1]))
+     dirfinal += separator;
+ 
+   dir = opendir(dirfinal.c_str());
+@@ -223,7 +223,7 @@ void FileManage::directoryList(vector<string> &res,const string &dirname,bool al
+   WIN32_FIND_DATAA FindFileData;
+   HANDLE hFind;
+   string dirfinal = dirname;
+-  if (!isSeparator(dirfinal[dirfinal.size()-1]))
++  if (!dirfinal.empty() && !isSeparator(dirfinal[dirfinal.size()-1]))
+     dirfinal += separator;
+   string regex = dirfinal + "*";
+   const char *s = regex.c_str();
+@@ -250,7 +250,7 @@ void FileManage::directoryList(vector<string> &res,const string &dirname,bool al
+   string dirfinal;
+ 
+   dirfinal = dirname;
+-  if (!isSeparator(dirfinal[dirfinal.size()-1]))
++  if (!dirfinal.empty() && !isSeparator(dirfinal[dirfinal.size()-1]))
+     dirfinal += separator;
+ 
+   dir = opendir(dirfinal.c_str());
+diff --git a/loadimage.cc b/loadimage.cc
+index 55822994..77a64fa7 100644
+--- a/loadimage.cc
++++ b/loadimage.cc
+@@ -47,7 +47,10 @@ RawLoadImage::~RawLoadImage(void)
+ 
+ {
+   if (thefile != (ifstream *)0) {
+-    thefile->close();
++    // `load file` can construct this and fail before open(), and libstdc++ 16 traps
++    // close() on a stream that was never opened.
++    if (thefile->is_open())
++      thefile->close();
+     delete thefile;
+   }
+ }

@@ -17,9 +17,29 @@ apply_once() {
 }
 apply_once "$GHIDRA" "$REPO_ROOT/tools/trace/action_trace.patch"
 apply_once "$CPP" "$REPO_ROOT/tools/fuzz/reference_fixes.patch"
+apply_once "$CPP" "$REPO_ROOT/tools/reference/libstdcxx16_assertions.patch"
 command -v bison >/dev/null || sudo apt-get install -y binutils-dev bison flex zlib1g-dev
+# Fedora 44's libstdc++ 16 enables _GLIBCXX_ASSERTIONS for unoptimized builds and ships
+# those assertions inside libstdc++.so itself, so the console aborts on the decompiler's
+# long-standing out-of-range string indexing (directoryList() on an empty path). The
+# patch above guards the sites the console reaches; the define keeps the objects built
+# here from adding more. CXX mirrors the Makefile's `CXX=g++ -std=c++11`.
+CXX_FLAGS="${CXX:-g++} -std=c++11 -D_GLIBCXX_NO_ASSERTIONS"
+# Fedora's /usr/lib64/libbfd.so is an ld script over libbfd.a that omits the compression
+# libraries bfd was built against, so the link fails on ZSTD_isError. Ask the toolchain
+# which set it needs instead of guessing per distro.
+bfd_link() {
+    for flags in "-lz -lzstd -lsframe -liberty" "-lz"; do
+        if echo 'int main(void){return 0;}' | ${CXX:-g++} -x c++ - -o /dev/null $flags -lbfd >/dev/null 2>&1; then
+            echo "$flags"
+            return
+        fi
+    done
+    echo "-lz"
+}
+LNK_FLAGS="$(bfd_link)"
 cd "$CPP"
 mkdir -p com_dbg com_opt test_dbg sla_opt sla_dbg
 touch xml.cc grammar.cc pcodeparse.cc slghparse.cc slghparse.hh slghscan.cc
-make -j"$(nproc)" decomp_test_dbg decomp_dbg sleigh_opt
+make -j"$(nproc)" CXX="$CXX_FLAGS" LNK="$LNK_FLAGS" decomp_test_dbg decomp_dbg sleigh_opt
 ./sleigh_opt -a ../../../../../Processors
